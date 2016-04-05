@@ -30,6 +30,12 @@ typedef NS_OPTIONS(NSUInteger, SLKPastableMediaType) {
     SLKPastableMediaTypeAll         = SLKPastableMediaTypeImages|SLKPastableMediaTypeMOV
 };
 
+typedef NS_OPTIONS(NSUInteger, SLKTextInputType) {
+    SLKTextInputTypeKeyboard = 0, // Default
+    SLKTextInputTypeDictation,
+    SLKTextInputTypeCustom
+};
+
 NS_ASSUME_NONNULL_BEGIN
 
 UIKIT_EXTERN NSString * const SLKTextViewTextWillChangeNotification;
@@ -48,6 +54,9 @@ UIKIT_EXTERN NSString * const SLKTextViewPastedItemData;
 @interface SLKTextView : UITextView <SLKTextInput>
 
 @property (nonatomic, weak) id<SLKTextViewDelegate,UITextViewDelegate>delegate;
+
+/** The current text input mode, either keyboard, dication or custom. */
+@property (nonatomic, readonly) SLKTextInputType textInputType;
 
 /** The placeholder text string. Default is nil. */
 @property (nonatomic, copy) NSString *_Nullable placeholder;

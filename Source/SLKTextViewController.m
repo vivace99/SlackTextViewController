@@ -694,6 +694,8 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
         }
     }
     
+    NSLog(@"%s",__FUNCTION__);
+    
     // Toggles auto-correction if requiered
     [self slk_enableTypingSuggestionIfNeeded];
 }
@@ -1156,6 +1158,8 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 
 - (void)slk_enableTypingSuggestionIfNeeded
 {
+    NSLog(@"textInputMode : %@", self.textView.textInputMode);
+    
     if (![self.textView isFirstResponder]) {
         return;
     }
@@ -1606,6 +1610,8 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     [_autoCompletionView reloadData];
     
     self.autoCompleting = show;
+    
+    NSLog(@"%s",__FUNCTION__);
     
     // Toggles auto-correction if requiered
     [self slk_enableTypingSuggestionIfNeeded];

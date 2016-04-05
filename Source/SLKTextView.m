@@ -423,6 +423,11 @@ SLKPastableMediaType SLKPastableMediaTypeFromNSString(NSString *string)
 
 - (void)setTypingSuggestionEnabled:(BOOL)enabled
 {
+    // No need to disable auto-correction while dictation is active
+    if (self.textInputType == SLKTextInputTypeDictation) {
+        return;
+    }
+    
     if (self.isTypingSuggestionEnabled == enabled) {
         return;
     }
@@ -521,6 +526,16 @@ SLKPastableMediaType SLKPastableMediaTypeFromNSString(NSString *string)
 
 
 #pragma mark - UITextInput Overrides
+
+- (void)dictationRecordingDidEnd
+{
+    //
+}
+
+- (void)dictationRecognitionFailed
+{
+    //
+}
 
 #ifdef __IPHONE_9_0
 - (void)beginFloatingCursorAtPoint:(CGPoint)point
@@ -866,7 +881,15 @@ SLKPastableMediaType SLKPastableMediaTypeFromNSString(NSString *string)
 
 - (void)slk_didChangeTextInputMode:(NSNotification *)notification
 {
-    // Do something
+    if ([self.textInputMode isKindOfClass:NSClassFromString(@"UIDictationInputMode")]) {
+        _textInputType = SLKTextInputTypeDictation;
+    }
+    else if ([self.textInputMode isKindOfClass:NSClassFromString(@"UIKeyboardInputMode")]) {
+        _textInputType = SLKTextInputTypeKeyboard;
+    }
+    else {
+        _textInputType = SLKTextInputTypeCustom;
+    }
 }
 
 - (void)slk_didChangeContentSizeCategory:(NSNotification *)notification
@@ -888,7 +911,7 @@ SLKPastableMediaType SLKPastableMediaTypeFromNSString(NSString *string)
 
 - (void)slk_willShowMenuController:(NSNotification *)notification
 {
-    
+    // Do something
 }
 
 - (void)slk_didHideMenuController:(NSNotification *)notification

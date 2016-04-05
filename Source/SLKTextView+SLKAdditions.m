@@ -93,14 +93,14 @@
         self.text = [NSString stringWithFormat:@"%@%@%@", leftString, text, rightString];
         
         range.location += text.length;
-
+        
         return range;
     }
     // Some text is selected, so we replace it with the new text
     else if (range.location != NSNotFound && range.length > 0)
     {
         self.text = [self.text stringByReplacingCharactersInRange:range withString:text];
-
+        
         range.location += text.length;
         
         return range;

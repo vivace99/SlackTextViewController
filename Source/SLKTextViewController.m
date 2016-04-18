@@ -314,8 +314,27 @@ CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
         _nickManagerView.translatesAutoresizingMaskIntoConstraints = NO;
         _nickManagerView.backgroundColor = [UIColor redColor];
         _nickManagerView.scrollsToTop = NO;
+        _nickManagerView.dataSource = self;
+        _nickManagerView.delegate = self;
     }
     return _nickManagerView;
+}
+
+- (void)registerNicks:(NSArray *)nicks
+{
+    if (nicks.count == 0) {
+        return;
+    }
+    
+    NSMutableSet *set = [NSMutableSet setWithSet:self.nickList];
+    [set addObjectsFromArray:nicks];
+    
+    _nickList = [NSSet setWithSet:set];
+}
+
+- (void)addNick:(NSString *)newNick
+{
+    return;
 }
 
 - (SLKTextInputbar *)textInputbar
@@ -2371,6 +2390,8 @@ CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
     _typingIndicatorViewHC = nil;
     _autoCompletionViewHC = nil;
     _keyboardHC = nil;
+    
+    _nickList = nil;
 }
 
 @end

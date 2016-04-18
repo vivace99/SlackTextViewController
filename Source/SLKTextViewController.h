@@ -494,6 +494,11 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 
 /** The table view used to manage nick name. */
 @property (nonatomic, readonly) UITableView *nickManagerView;
+@property (nonatomic, readonly, copy) NSSet *_Nullable nickList;
+
+- (void)registerNicks:(NSArray *_Nullable)nicks;
+
+- (void)addNick:(NSString *)newNick;
 
 
 #pragma mark - Text Caching

@@ -12,6 +12,7 @@ static CGFloat kMessageTableViewCellMinimumHeight = 50.0;
 static CGFloat kMessageTableViewCellAvatarHeight = 30.0;
 
 static NSString *MessengerCellIdentifier = @"MessengerCell";
+static NSString *NickManagerCellIdentifier = @"NickManagerCell";
 static NSString *AutoCompletionCellIdentifier = @"AutoCompletionCell";
 
 @interface MessageTableViewCell : UITableViewCell

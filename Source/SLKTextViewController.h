@@ -487,6 +487,15 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 - (void)acceptAutoCompletionWithString:(NSString *_Nullable)string keepPrefix:(BOOL)keepPrefix;
 
 
+#pragma mark - Nick Manager
+///------------------------------------------------
+/// @name Nick Manager
+///------------------------------------------------
+
+/** The table view used to manage nick name. */
+@property (nonatomic, readonly) UITableView *nickManagerView;
+
+
 #pragma mark - Text Caching
 ///------------------------------------------------
 /// @name Text Caching

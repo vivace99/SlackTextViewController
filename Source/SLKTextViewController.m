@@ -23,6 +23,7 @@ NSString * const SLKKeyboardWillHideNotification =      @"SLKKeyboardWillHideNot
 NSString * const SLKKeyboardDidHideNotification =       @"SLKKeyboardDidHideNotification";
 
 CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
+CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
 
 @interface SLKTextViewController ()
 {
@@ -42,6 +43,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 @property (nonatomic, strong) NSLayoutConstraint *typingIndicatorViewHC;
 @property (nonatomic, strong) NSLayoutConstraint *autoCompletionViewHC;
 @property (nonatomic, strong) NSLayoutConstraint *keyboardHC;
+@property (nonatomic, strong) NSLayoutConstraint *nickManagerViewHC;
 
 // YES if the user is moving the keyboard with a gesture
 @property (nonatomic, assign, getter = isMovingKeyboard) BOOL movingKeyboard;
@@ -68,6 +70,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 @synthesize autoCompleting = _autoCompleting;
 @synthesize scrollViewProxy = _scrollViewProxy;
 @synthesize presentedInPopover = _presentedInPopover;
+@synthesize nickManagerView = _nickManagerView;
 
 #pragma mark - Initializer
 
@@ -173,6 +176,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     [super viewDidLoad];
     
     [self.view addSubview:self.scrollViewProxy];
+    [self.view addSubview:self.nickManagerView];
     [self.view addSubview:self.autoCompletionView];
     [self.view addSubview:self.typingIndicatorProxyView];
     [self.view addSubview:self.textInputbar];
@@ -303,6 +307,17 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     return _autoCompletionView;
 }
 
+- (UITableView *)nickManagerView
+{
+    if (!_nickManagerView) {
+        _nickManagerView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
+        _nickManagerView.translatesAutoresizingMaskIntoConstraints = NO;
+        _nickManagerView.backgroundColor = [UIColor redColor];
+        _nickManagerView.scrollsToTop = NO;
+    }
+    return _nickManagerView;
+}
+
 - (SLKTextInputbar *)textInputbar
 {
     if (!_textInputbar) {
@@ -390,6 +405,13 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     
     CGRect keyboardRect = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
     
+    // Update nickManagerView height
+    if ( [[notification name] isEqualToString:@"UIKeyboardWillShowNotification"] ){
+        self.nickManagerViewHC.constant = SLKNickManagerViewDefaultHeight;
+    }else if ( [[notification name] isEqualToString:@"UIKeyboardWillHideNotification"] ){
+        self.nickManagerViewHC.constant = 0;
+    }
+    
     return [self slk_appropriateKeyboardHeightFromRect:keyboardRect];
 }
 
@@ -437,6 +459,7 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     scrollViewHeight -= self.textInputbarHC.constant;
     scrollViewHeight -= self.autoCompletionViewHC.constant;
     scrollViewHeight -= self.typingIndicatorViewHC.constant;
+    scrollViewHeight -= self.nickManagerViewHC.constant;
     
     if (scrollViewHeight < 0) return 0;
     else return scrollViewHeight;
@@ -1364,7 +1387,6 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     self.keyboardHC.constant = [self slk_appropriateKeyboardHeightFromNotification:notification];
     self.scrollViewHC.constant = [self slk_appropriateScrollViewHeight];
     
-    
     NSInteger curve = [notification.userInfo[UIKeyboardAnimationCurveUserInfoKey] integerValue];
     NSTimeInterval duration = [notification.userInfo[UIKeyboardAnimationDurationUserInfoKey] doubleValue];
     
@@ -2122,19 +2144,22 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 - (void)slk_setupViewConstraints
 {
     NSDictionary *views = @{@"scrollView": self.scrollViewProxy,
+                            @"nickManagerView": self.nickManagerView,
                             @"autoCompletionView": self.autoCompletionView,
                             @"typingIndicatorView": self.typingIndicatorProxyView,
                             @"textInputbar": self.textInputbar,
                             };
     
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[scrollView(0@750)][typingIndicatorView(0)]-0@999-[textInputbar(0)]|" options:0 metrics:nil views:views]];
-    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(>=0)-[autoCompletionView(0@750)][typingIndicatorView]" options:0 metrics:nil views:views]];
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(>=0)-[nickManagerView(0@750)][autoCompletionView(0@750)][typingIndicatorView]" options:0 metrics:nil views:views]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[scrollView]|" options:0 metrics:nil views:views]];
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[nickManagerView]|" options:0 metrics:nil views:views]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[autoCompletionView]|" options:0 metrics:nil views:views]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[typingIndicatorView]|" options:0 metrics:nil views:views]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[textInputbar]|" options:0 metrics:nil views:views]];
     
     self.scrollViewHC = [self.view slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.scrollViewProxy secondItem:nil];
+    self.nickManagerViewHC = [self.view slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.nickManagerView secondItem:nil];
     self.autoCompletionViewHC = [self.view slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.autoCompletionView secondItem:nil];
     self.typingIndicatorViewHC = [self.view slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.typingIndicatorProxyView secondItem:nil];
     self.textInputbarHC = [self.view slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.textInputbar secondItem:nil];
@@ -2324,6 +2349,10 @@ CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
     _autoCompletionView.delegate = nil;
     _autoCompletionView.dataSource = nil;
     _autoCompletionView = nil;
+    
+    _nickManagerView.delegate = nil;
+    _nickManagerView.dataSource = nil;
+    _nickManagerView = nil;
     
     _textInputbar = nil;
     _textViewClass = nil;

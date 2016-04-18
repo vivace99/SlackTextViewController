@@ -16,6 +16,7 @@ class MessageViewController: SLKTextViewController {
     var channels = ["General", "Random", "iOS", "Bugs", "Sports", "Android", "UI", "SSB"]
     var emojis = ["-1", "m", "man", "machine", "block-a", "block-b", "bowtie", "boar", "boat", "book", "bookmark", "neckbeard", "metal", "fu", "feelsgood"]
     var commands = ["msg", "call", "text", "skype", "kick", "invite"]
+    var nicks = ["edward"];
     
     var searchResult: [AnyObject]?
     

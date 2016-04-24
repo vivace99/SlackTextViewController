@@ -12,6 +12,8 @@
 #import "UIResponder+SLKAdditions.h"
 #import "SLKUIConstants.h"
 
+#import <QuartzCore/QuartzCore.h>
+
 /** Feature flagged while waiting to implement a more reliable technique. */
 #define SLKBottomPanningEnabled 0
 
@@ -24,6 +26,7 @@ NSString * const SLKKeyboardDidHideNotification =       @"SLKKeyboardDidHideNoti
 
 CGFloat const SLKAutoCompletionViewDefaultHeight = 140.0;
 CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
+NSInteger const SLKNickMinLength = 4;
 
 @interface SLKTextViewController ()
 {
@@ -71,6 +74,7 @@ CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
 @synthesize scrollViewProxy = _scrollViewProxy;
 @synthesize presentedInPopover = _presentedInPopover;
 @synthesize nickManagerView = _nickManagerView;
+@synthesize nickList = _nickList;
 
 #pragma mark - Initializer
 
@@ -174,6 +178,8 @@ CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    _selectedNick = 0;
     
     [self.view addSubview:self.scrollViewProxy];
     [self.view addSubview:self.nickManagerView];
@@ -310,14 +316,21 @@ CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
 - (UITableView *)nickManagerView
 {
     if (!_nickManagerView) {
-        _nickManagerView = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStylePlain];
+        _nickManagerView = [[UIScrollView alloc] initWithFrame:CGRectZero];
         _nickManagerView.translatesAutoresizingMaskIntoConstraints = NO;
-        _nickManagerView.backgroundColor = [UIColor redColor];
+        _nickManagerView.backgroundColor = [UIColor colorWithRed:0.82 green:0.84 blue:0.86 alpha:1.0];
         _nickManagerView.scrollsToTop = NO;
-        _nickManagerView.dataSource = self;
         _nickManagerView.delegate = self;
     }
     return _nickManagerView;
+}
+
+- (NSMutableArray *)nickList
+{
+    if (!_nickList) {
+        _nickList = [[NSMutableArray alloc] init];
+    }
+    return _nickList;
 }
 
 - (void)registerNicks:(NSArray *)nicks
@@ -326,15 +339,254 @@ CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
         return;
     }
     
-    NSMutableSet *set = [NSMutableSet setWithSet:self.nickList];
-    [set addObjectsFromArray:nicks];
+    _selectedNick = 0;
     
-    _nickList = [NSSet setWithSet:set];
+    NSIndexSet *indexes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0,[nicks count])];
+    [self.nickList insertObjects:nicks atIndexes:indexes];
+    
+    // remove buttons
+    for ( UIView *subview in [self.nickManagerView subviews] ){
+        [subview removeFromSuperview];
+    }
+    
+    // add buttons
+    int _button_count = self.nickList.count + 1;
+    int _width = self.view.frame.size.width;
+    if ( _width / 3 * _button_count > _width ){
+        _width = _width / 3 * _button_count;
+    }
+    self.nickManagerView.contentSize = CGSizeMake(_width, SLKNickManagerViewDefaultHeight);
+    for ( int i = 0; i < self.nickList.count; i++ ){
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+        [button setTag:i];
+        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        if ( i == 0 ){
+            [button setBackgroundColor:[UIColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:1.0]];
+        }else{
+            [button setBackgroundColor:[UIColor colorWithRed:0.73 green:0.76 blue:0.79 alpha:1.0]];
+        }
+        [button setTitle:[self.nickList objectAtIndex:i] forState:UIControlStateNormal];
+        [button addTarget:self action:@selector(nickChoice:) forControlEvents:UIControlEventTouchUpInside];
+        [button setFrame:CGRectMake(self.view.frame.size.width/3*i, 0.0, self.view.frame.size.width/3-1, SLKNickManagerViewDefaultHeight)];
+        [self.nickManagerView addSubview:button];
+    }
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button setTag:self.nickList.count];
+    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [button setBackgroundColor:[UIColor colorWithRed:0.73 green:0.76 blue:0.79 alpha:1.0]];
+    [button setTitle:@"Add Nick" forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(nickChoice:) forControlEvents:UIControlEventTouchUpInside];
+    [button setFrame:CGRectMake(self.view.frame.size.width/3*self.nickList.count, 0.0, self.view.frame.size.width/3-1, SLKNickManagerViewDefaultHeight)];
+    [self.nickManagerView addSubview:button];
+    [self.nickManagerView setContentOffset:CGPointMake(0,0)];
+    //
+    /*
+    CGFloat animationDuration = 5;
+    
+    CATextLayer *textLayer = [CATextLayer layer];
+    [textLayer setString:@"Hello World"];
+    [textLayer setForegroundColor:[UIColor purpleColor].CGColor];
+    [textLayer setFontSize:30];
+    [textLayer setFrame:CGRectMake(0, 0, 200, 40)];
+    [[self.nickManagerView layer] addSublayer:textLayer];
+    
+    CABasicAnimation *colorAnimation = [CABasicAnimation
+                                        animationWithKeyPath:@"foregroundColor"];
+    colorAnimation.duration = animationDuration;
+    colorAnimation.fillMode = kCAFillModeForwards;
+    colorAnimation.removedOnCompletion = NO;
+    colorAnimation.fromValue = (id)[UIColor purpleColor].CGColor;
+    colorAnimation.toValue = (id)[UIColor greenColor].CGColor;
+    colorAnimation.timingFunction = [CAMediaTimingFunction
+                                     functionWithName:kCAMediaTimingFunctionLinear];
+    
+    CAAnimationGroup *animationGroup = [CAAnimationGroup animation];
+    animationGroup.duration = animationDuration;
+    animationGroup.timingFunction = [CAMediaTimingFunction
+                                     functionWithName:kCAMediaTimingFunctionLinear];
+    animationGroup.fillMode = kCAFillModeForwards;
+    animationGroup.removedOnCompletion = NO;
+    animationGroup.animations = [NSArray arrayWithObjects:colorAnimation, nil];
+    
+    [textLayer addAnimation:animationGroup forKey:@"animateColorAndScale"];*/
 }
 
 - (void)addNick:(NSString *)newNick
 {
     return;
+}
+
+- (void)nickChoice:(UIButton*)sender
+{
+    if ( sender.tag == self.nickList.count ){
+        // add new nick
+        [self nickAddOption];
+    } else {
+        // select nick
+        _selectedNick = sender.tag;
+        for ( UIButton *button in [self.nickManagerView subviews] ){
+            if ( button.tag == sender.tag ){
+                [button setBackgroundColor:[UIColor colorWithRed:0.0 green:0.0 blue:1.0 alpha:1.0]];
+            }else{
+                [button setBackgroundColor:[UIColor colorWithRed:0.73 green:0.76 blue:0.79 alpha:1.0]];
+            }
+        }
+    }
+}
+
+- (void)nickAddOption
+{
+    UIAlertController *view = [UIAlertController
+                                    alertControllerWithTitle:@"새로운 닉네임 추가"
+                                    message:@"원하는 닉네임의 종류를 선택하세요"
+                                    preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    UIAlertAction *randomNick = [UIAlertAction
+                                 actionWithTitle:@"랜덤 닉네임(10GP)"
+                                 style:UIAlertActionStyleDefault
+                                 handler:^(UIAlertAction * action)
+                                 {
+                                     [self newNick:NO color:NO time:NO];
+                                     [view dismissViewControllerAnimated:YES completion:nil];
+                                 }];
+    
+    UIAlertAction *userNick = [UIAlertAction
+                                actionWithTitle:@"자유 닉네임(50GP)"
+                                style:UIAlertActionStyleDefault
+                                handler:^(UIAlertAction * action)
+                                {
+                                    [self newNick:YES color:NO time:NO];
+                                    [view dismissViewControllerAnimated:YES completion:nil];
+                                }];
+    /*
+    UIAlertAction *userColorNick = [UIAlertAction
+                                actionWithTitle:@"자유 닉네임 - 컬러 지원(100GP)"
+                                style:UIAlertActionStyleDefault
+                                handler:^(UIAlertAction * action)
+                                {
+                                    [self newNick:YES color:YES time:NO];
+                                    [view dismissViewControllerAnimated:YES completion:nil];
+                                }];
+    
+    UIAlertAction *tempNick = [UIAlertAction
+                                actionWithTitle:@"자유 닉네임 - 컬러 지원, 24시간 후 사라짐(200GP)"
+                                style:UIAlertActionStyleDefault
+                                handler:^(UIAlertAction * action)
+                               {
+                                    [self newNick:YES color:YES time:YES];
+                                    [view dismissViewControllerAnimated:YES completion:nil];
+                                }];
+    */
+    UIAlertAction *cancel = [UIAlertAction
+                                actionWithTitle:@"닫기"
+                                style:UIAlertActionStyleDefault
+                                handler:^(UIAlertAction * action)
+                                {
+                                    [view dismissViewControllerAnimated:YES completion:nil];
+                                }];
+    [view addAction:randomNick];
+    [view addAction:userNick];
+    //[view addAction:userColorNick];
+    //[view addAction:tempNick];
+    [view addAction:cancel];
+    [self presentViewController:view animated:YES completion:nil];
+}
+
+- (void)newNick:(BOOL)customText color:(BOOL)customColor time:(BOOL)limitTime
+{
+    if ( customText ){
+        if ( customColor ){
+            // 색상이 포함된 사용자 설정 닉네임
+            UIAlertController *view = [UIAlertController
+                                       alertControllerWithTitle:@"새로운 닉네임 추가"
+                                       message:@" \n "
+                                       preferredStyle:UIAlertControllerStyleAlert];
+            
+            [view addTextFieldWithConfigurationHandler:^(UITextField *textField)
+             {
+                 textField.placeholder = @"닉네임";
+             }];
+            
+            NSArray *colors = [[NSArray alloc] initWithObjects:[UIColor blackColor],[UIColor darkGrayColor],[UIColor grayColor],[UIColor lightGrayColor],[UIColor redColor],[UIColor greenColor],[UIColor blueColor],[UIColor cyanColor],[UIColor yellowColor],[UIColor magentaColor],[UIColor orangeColor],[UIColor purpleColor],[UIColor brownColor],nil];
+            for ( int i = 0; i < colors.count; i++ ){
+                UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+                [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+                [button setBackgroundColor:[colors objectAtIndex:i]];
+                [button setTitle:@"" forState:UIControlStateNormal];
+                [button setFrame:CGRectMake(12 + i * 19, 54, 19, 30)];
+                [[button layer] setBorderWidth:1.0f];
+                [[button layer] setBorderColor:[UIColor redColor].CGColor];
+                [view.view addSubview:button];
+            }
+            
+            UIAlertAction *confirm = [UIAlertAction
+                                      actionWithTitle:@"추가"
+                                      style:UIAlertActionStyleDefault
+                                      handler:^(UIAlertAction * action)
+                                      {
+                                          if ( [view.textFields.firstObject.text length] >= SLKNickMinLength ){
+                                              [self registerNicks:@[view.textFields.firstObject.text]];
+                                              [view dismissViewControllerAnimated:YES completion:nil];
+                                          }
+                                      }];
+            
+            UIAlertAction *cancel = [UIAlertAction
+                                     actionWithTitle:@"닫기"
+                                     style:UIAlertActionStyleDefault
+                                     handler:^(UIAlertAction * action)
+                                     {
+                                         [view dismissViewControllerAnimated:YES completion:nil];
+                                     }];
+            
+            [view addAction:confirm];
+            [view addAction:cancel];
+            [self presentViewController:view animated:YES completion:nil];
+        }else{
+            // 사용자 설정 닉네임
+            UIAlertController *view = [UIAlertController
+                                       alertControllerWithTitle:@"새로운 닉네임 추가"
+                                       message:@"원하는 닉네임을 입력하세요"
+                                       preferredStyle:UIAlertControllerStyleAlert];
+            
+            [view addTextFieldWithConfigurationHandler:^(UITextField *textField)
+            {
+                textField.placeholder = @"닉네임";
+            }];
+            
+            UIAlertAction *confirm = [UIAlertAction
+                                      actionWithTitle:@"추가"
+                                      style:UIAlertActionStyleDefault
+                                      handler:^(UIAlertAction * action)
+                                      {
+                                          if ( [view.textFields.firstObject.text length] >= SLKNickMinLength ){
+                                              [self registerNicks:@[view.textFields.firstObject.text]];
+                                              [view dismissViewControllerAnimated:YES completion:nil];
+                                          }
+                                      }];
+            
+            UIAlertAction *cancel = [UIAlertAction
+                                     actionWithTitle:@"닫기"
+                                     style:UIAlertActionStyleDefault
+                                     handler:^(UIAlertAction * action)
+                                     {
+                                         [view dismissViewControllerAnimated:YES completion:nil];
+                                     }];
+            [view addAction:confirm];
+            [view addAction:cancel];
+            [self presentViewController:view animated:YES completion:nil];
+        }
+        if ( limitTime ){
+            // 시간 제한 닉네임 속성 설정
+            
+        }
+    }else{
+        // 랜덤 닉네임 추가
+        [self registerNicks:@[@"망나니"]];
+    }
+}
+
+- (NSString *)getSelectedNick {
+    return [self.nickList objectAtIndex:_selectedNick];;
 }
 
 - (SLKTextInputbar *)textInputbar
@@ -2370,8 +2622,8 @@ CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
     _autoCompletionView = nil;
     
     _nickManagerView.delegate = nil;
-    _nickManagerView.dataSource = nil;
     _nickManagerView = nil;
+    _nickList = nil;
     
     _textInputbar = nil;
     _textViewClass = nil;
@@ -2390,8 +2642,6 @@ CGFloat const SLKNickManagerViewDefaultHeight = 40.0;
     _typingIndicatorViewHC = nil;
     _autoCompletionViewHC = nil;
     _keyboardHC = nil;
-    
-    _nickList = nil;
 }
 
 @end

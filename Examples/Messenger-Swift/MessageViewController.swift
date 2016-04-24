@@ -87,11 +87,10 @@ class MessageViewController: SLKTextViewController {
             tableView.registerClass(MessageTableViewCell.classForCoder(), forCellReuseIdentifier: MessengerCellIdentifier)
         }
         
-        self.nickManagerView.registerClass(MessageTableViewCell.classForCoder(), forCellReuseIdentifier: NickManagerCellIdentifier)
         self.autoCompletionView.registerClass(MessageTableViewCell.classForCoder(), forCellReuseIdentifier: AutoCompletionCellIdentifier)
         self.registerPrefixesForAutoCompletion(["@",  "#", ":", "+:", "/"])
         
-        self.registerNicks(["Edward"])
+        self.registerNicks(["이춘원", "흠칫뿡"])
         
         self.textView.registerMarkdownFormattingSymbol("*", withTitle: "Bold")
         self.textView.registerMarkdownFormattingSymbol("_", withTitle: "Italics")
@@ -537,9 +536,6 @@ extension MessageViewController {
         if tableView == self.tableView {
             return self.messages.count
         }
-        else if tableView == self.nickManagerView {
-            return 1;
-        }
         else {
             if let searchResult = self.searchResult {
                 return searchResult.count
@@ -553,9 +549,6 @@ extension MessageViewController {
         
         if tableView == self.tableView {
             return self.messageCellForRowAtIndexPath(indexPath)
-        }
-        else if tableView == self.nickManagerView {
-            return self.nickCellForRowAtIndexPath(indexPath)
         }
         else {
             return self.autoCompletionCellForRowAtIndexPath(indexPath)
@@ -582,16 +575,6 @@ extension MessageViewController {
         // Cells must inherit the table view's transform
         // This is very important, since the main table view may be inverted
         cell.transform = self.tableView!.transform
-        
-        return cell
-    }
-    
-    func nickCellForRowAtIndexPath(indexPath: NSIndexPath) -> MessageTableViewCell {
-        let cell = self.nickManagerView.dequeueReusableCellWithIdentifier(NickManagerCellIdentifier) as! MessageTableViewCell
-        cell.indexPath = indexPath
-        cell.selectionStyle = .Default
-        
-        cell.titleLabel.text = "Edward";
         
         return cell
     }
@@ -659,9 +642,6 @@ extension MessageViewController {
             }
             
             return height
-        }
-        else if tableView == self.nickManagerView {
-            return kMessageTableViewCellMinimumHeight
         }
         else {
             return kMessageTableViewCellMinimumHeight

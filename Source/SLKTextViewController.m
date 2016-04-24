@@ -581,7 +581,7 @@ NSInteger const SLKNickMinLength = 4;
         }
     }else{
         // 랜덤 닉네임 추가
-        [self registerNicks:@[@"망나니"]];
+        [self getRandomNick];
     }
 }
 

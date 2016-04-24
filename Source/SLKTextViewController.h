@@ -505,6 +505,8 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 
 - (void)nickAddOption;
 
+- (void)getRandomNick;
+
 - (void)newNick:(BOOL)customText color:(BOOL)customColor time:(BOOL)limitTime;
 
 - (NSString *)getSelectedNick;

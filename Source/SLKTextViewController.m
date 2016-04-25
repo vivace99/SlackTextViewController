@@ -678,14 +678,14 @@ NSInteger const SLKNickMinLength = 4;
         return [self slk_appropriateBottomMargin];
     }
     
-    CGRect keyboardRect = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
-    
     // Update nickManagerView height
     if ( [[notification name] isEqualToString:@"UIKeyboardWillShowNotification"] ){
         self.nickManagerViewHC.constant = SLKNickManagerViewDefaultHeight;
     }else if ( [[notification name] isEqualToString:@"UIKeyboardWillHideNotification"] ){
         self.nickManagerViewHC.constant = 0;
     }
+    
+    CGRect keyboardRect = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
     
     return [self slk_appropriateKeyboardHeightFromRect:keyboardRect];
 }
@@ -1468,6 +1468,7 @@ NSInteger const SLKNickMinLength = 4;
     if (self.tabBarController) {
         bottom = self.tabBarController.tabBar.frame.size.height;
     }
+    self.nickManagerViewHC.constant = 0;
     
     if (self.keyboardHC.constant == bottom) {
         return;

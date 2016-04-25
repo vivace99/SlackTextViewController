@@ -126,7 +126,7 @@ class MessageViewController: SLKTextViewController, UISearchBarDelegate {
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
-}
+}  
 
 
 extension MessageViewController {

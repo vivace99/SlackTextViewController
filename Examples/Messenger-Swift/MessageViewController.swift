@@ -8,7 +8,7 @@
 
 let DEBUG_CUSTOM_TYPING_INDICATOR = false
 
-class MessageViewController: SLKTextViewController {
+class MessageViewController: SLKTextViewController, UISearchBarDelegate {
     
     var messages = [Message]()
     
@@ -45,6 +45,8 @@ class MessageViewController: SLKTextViewController {
             self.registerClassForTypingIndicatorView(TypingIndicatorView.classForCoder())
         }
     }
+    
+    let searchBar:UISearchBar = UISearchBar(frame: CGRectMake(0,0,UIScreen.mainScreen().bounds.width, 44))
     
     override func viewDidLoad() {
         
@@ -98,6 +100,20 @@ class MessageViewController: SLKTextViewController {
         self.textView.registerMarkdownFormattingSymbol("`", withTitle: "Code")
         self.textView.registerMarkdownFormattingSymbol("```", withTitle: "Preformatted")
         self.textView.registerMarkdownFormattingSymbol(">", withTitle: "Quote")
+        
+        searchBar.delegate = self
+        if let navi = self.navigationController {
+            searchBar.frame = CGRectMake(0, navi.navigationBar.frame.size.height + navi.navigationBar.frame.origin.y, searchBar.frame.size.width, searchBar.frame.size.height)
+        }
+        self.view.addSubview(searchBar)
+    }
+    
+    func searchBarSearchButtonClicked(searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
     }
     
     
@@ -111,6 +127,7 @@ class MessageViewController: SLKTextViewController {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
 }
+
 
 extension MessageViewController {
     
@@ -134,13 +151,16 @@ extension MessageViewController {
     }
     
     func configureActionItems() {
-        
         let arrowItem = UIBarButtonItem(image: UIImage(named: "icn_arrow_down"), style: .Plain, target: self, action: #selector(MessageViewController.hideOrShowTextInputbar(_:)))
         let editItem = UIBarButtonItem(image: UIImage(named: "icn_editing"), style: .Plain, target: self, action: #selector(MessageViewController.editRandomMessage(_:)))
         let typeItem = UIBarButtonItem(image: UIImage(named: "icn_typing"), style: .Plain, target: self, action: #selector(MessageViewController.simulateUserTyping(_:)))
         let appendItem = UIBarButtonItem(image: UIImage(named: "icn_append"), style: .Plain, target: self, action: #selector(MessageViewController.fillWithText(_:)))
         let pipItem = UIBarButtonItem(image: UIImage(named: "icn_pic"), style: .Plain, target: self, action: #selector(MessageViewController.togglePIPWindow(_:)))
-        self.navigationItem.rightBarButtonItems = [arrowItem, pipItem, editItem, appendItem, typeItem]
+        if let tab = self.tabBarController {
+            tab.navigationItem.rightBarButtonItems = [arrowItem, pipItem, editItem, appendItem, typeItem]
+        } else {
+            self.navigationItem.rightBarButtonItems = [arrowItem, pipItem, editItem, appendItem, typeItem]
+        }
     }
     
     // MARK: - Action Methods

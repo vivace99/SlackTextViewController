@@ -585,6 +585,10 @@ NSInteger const SLKNickMinLength = 4;
     }
 }
 
+- (void)getRandomNick {
+    
+}
+
 - (NSString *)getSelectedNick {
     return [self.nickList objectAtIndex:_selectedNick];;
 }

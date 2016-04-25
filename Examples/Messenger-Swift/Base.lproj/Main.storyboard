@@ -5,7 +5,7 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
     </dependencies>
     <scenes>
-        <!--Message View Controller-->
+        <!--Item-->
         <scene sceneID="tne-QT-ifu">
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="MessageViewController" customModule="Messenger_Swift" customModuleProvider="target" sceneMemberID="viewController">
@@ -18,11 +18,30 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
+                    <tabBarItem key="tabBarItem" title="Item" id="TXo-zF-vtg"/>
                     <navigationItem key="navigationItem" id="Kuo-HA-7nc"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1213" y="478"/>
+            <point key="canvasLocation" x="1283" y="1351"/>
+        </scene>
+        <!--Tab Bar Controller-->
+        <scene sceneID="Fip-qX-qjA">
+            <objects>
+                <tabBarController id="ADc-Rt-6oW" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="a3b-aa-G29"/>
+                    <tabBar key="tabBar" contentMode="scaleToFill" id="Zfj-6W-p7S">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="49"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                    </tabBar>
+                    <connections>
+                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="viewControllers" id="utU-XO-wGk"/>
+                    </connections>
+                </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ax3-zg-ONY" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="445" y="1351"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="Tsc-df-QmC">
@@ -35,7 +54,7 @@
                     </navigationBar>
                     <nil name="viewControllers"/>
                     <connections>
-                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="CLW-sF-SRl"/>
+                        <segue destination="ADc-Rt-6oW" kind="relationship" relationship="rootViewController" id="fcd-C7-PCt"/>
                     </connections>
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="0OH-fa-FRa" userLabel="First Responder" sceneMemberID="firstResponder"/>
